@@ -171,7 +171,11 @@ router.get('/health', async (req, res) => {
     const ninja = require('../tools/ninja');
     await ninja.getOrganizations();
     status.ninja = 'ok';
-  } catch (e) { status.ninja = e.response?.status === 401 ? 'auth_error' : 'error'; }
+  } catch (e) {
+    console.error('Ninja health error:', e.response?.status, e.response?.data, e.message);
+    status.ninja = e.response?.status === 401 ? 'auth_error' : 'error';
+    status.ninja_detail = e.response?.data || e.message;
+  }
 
   res.json({ status, timestamp: new Date().toISOString() });
 });
