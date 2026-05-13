@@ -3,13 +3,14 @@ const axios = require('axios');
 let tokenCache = { token: null, expiresAt: 0 };
 
 function getNinjaBaseUrl() {
+  if (process.env.NINJA_BASE_URL) return process.env.NINJA_BASE_URL;
   const regionMap = {
-    eu: 'https://eu.ninjarmm.com',
+    eu: 'https://eu-api.ninjarmm.com',
     us: 'https://app.ninjarmm.com',
     oc: 'https://oc.ninjarmm.com',
     ca: 'https://ca.ninjarmm.com',
   };
-  return regionMap[(process.env.NINJA_REGION || 'eu').toLowerCase()] || process.env.NINJA_BASE_URL || 'https://eu.ninjarmm.com';
+  return regionMap[(process.env.NINJA_REGION || 'eu').toLowerCase()] || 'https://eu-api.ninjarmm.com';
 }
 
 async function getNinjaToken() {
