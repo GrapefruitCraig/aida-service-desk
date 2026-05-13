@@ -169,7 +169,7 @@ router.get('/health', async (req, res) => {
 
   try {
     const ninja = require('../tools/ninja');
-    await ninja.getOrganizations();
+    await ninja.getDevices({ limit: 1 });
     status.ninja = 'ok';
   } catch (e) {
     console.error('Ninja health error:', e.response?.status, e.response?.data, e.message);
