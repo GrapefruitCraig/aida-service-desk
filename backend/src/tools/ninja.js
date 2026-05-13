@@ -18,21 +18,26 @@ async function getNinjaToken() {
     return tokenCache.token;
   }
   const base = getNinjaBaseUrl();
-  const res = await axios.post(
-    `${base}/ws/oauth/token`,
-    `grant_type=client_credentials&client_id=${encodeURIComponent(process.env.NINJA_CLIENT_ID)}&client_secret=${encodeURIComponent(process.env.NINJA_CLIENT_SECRET)}&scope=monitoring%20management%20control`,
-    {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json',
-      },
-    }
-  );
-  tokenCache = {
-    token: res.data.access_token,
-    expiresAt: Date.now() + res.data.expires_in * 1000,
-  };
-  return tokenCache.token;
+  try {
+    const res = await axios.post(
+      `${base}/ws/oauth/token`,
+      `grant_type=client_credentials&client_id=${encodeURIComponent(process.env.NINJA_CLIENT_ID)}&client_secret=${encodeURIComponent(process.env.NINJA_CLIENT_SECRET)}&scope=monitoring%20management%20control`,
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+        },
+      }
+    );
+    tokenCache = {
+      token: res.data.access_token,
+      expiresAt: Date.now() + res.data.expires_in * 1000,
+    };
+    return tokenCache.token;
+  } catch (e) {
+    console.error('Ninja token error:', JSON.stringify(e.response?.data), e.response?.status, e.response?.headers);
+    throw e;
+  }
 }
 
 async function ninjaRequest(method, path, data = null, params = {}) {
