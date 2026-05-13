@@ -49,9 +49,10 @@ async function getNinjaToken() {
     return tokenCache.token;
   } catch (e) {
     const elapsed = Date.now() - requestStart;
-    console.error(`[getNinjaToken] Token request failed after ${elapsed}ms — status=${e.response?.status}`);
-    console.error(`[getNinjaToken] Response body:`, JSON.stringify(e.response?.data));
-    console.error(`[getNinjaToken] Response headers:`, JSON.stringify(e.response?.headers));
+    console.error('NINJA_ERROR_BODY:', JSON.stringify(e.response?.data));
+    console.error('NINJA_ERROR_STATUS:', e.response?.status);
+    console.error('NINJA_CLIENT_ID_USED:', process.env.NINJA_CLIENT_ID);
+    console.error('NINJA_URL_USED:', base);
     throw e;
   }
 }
