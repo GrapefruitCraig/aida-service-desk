@@ -14,13 +14,23 @@ function getNinjaBaseUrl() {
 }
 
 async function getNinjaToken() {
-  if (tokenCache.token && Date.now() < tokenCache.expiresAt - 60000) {
+  const now = Date.now();
+  if (tokenCache.token && now < tokenCache.expiresAt - 60000) {
+    const remainingSecs = Math.round((tokenCache.expiresAt - now) / 1000);
+    console.log(`[getNinjaToken] Returning cached token (expires in ${remainingSecs}s)`);
     return tokenCache.token;
   }
+
   const base = getNinjaBaseUrl();
+  const tokenUrl = `${base}/ws/oauth/token`;
+  console.log(`[getNinjaToken] Cache miss — requesting new token from ${tokenUrl}`);
+  console.log(`[getNinjaToken] Client ID: ${process.env.NINJA_CLIENT_ID ? process.env.NINJA_CLIENT_ID.slice(0, 4) + '****' : '(not set)'}`);
+  console.log(`[getNinjaToken] Client secret set: ${!!process.env.NINJA_CLIENT_SECRET}`);
+
+  const requestStart = Date.now();
   try {
     const res = await axios.post(
-      `${base}/ws/oauth/token`,
+      tokenUrl,
       `grant_type=client_credentials&client_id=${encodeURIComponent(process.env.NINJA_CLIENT_ID)}&client_secret=${encodeURIComponent(process.env.NINJA_CLIENT_SECRET)}&scope=monitoring`,
       {
         headers: {
@@ -29,13 +39,19 @@ async function getNinjaToken() {
         },
       }
     );
+    const elapsed = Date.now() - requestStart;
+    const expiresIn = res.data.expires_in;
     tokenCache = {
       token: res.data.access_token,
-      expiresAt: Date.now() + res.data.expires_in * 1000,
+      expiresAt: Date.now() + expiresIn * 1000,
     };
+    console.log(`[getNinjaToken] Token acquired in ${elapsed}ms (expires_in=${expiresIn}s, token_type=${res.data.token_type})`);
     return tokenCache.token;
   } catch (e) {
-    console.error('Ninja token error:', JSON.stringify(e.response?.data), e.response?.status, e.response?.headers);
+    const elapsed = Date.now() - requestStart;
+    console.error(`[getNinjaToken] Token request failed after ${elapsed}ms — status=${e.response?.status}`);
+    console.error(`[getNinjaToken] Response body:`, JSON.stringify(e.response?.data));
+    console.error(`[getNinjaToken] Response headers:`, JSON.stringify(e.response?.headers));
     throw e;
   }
 }
