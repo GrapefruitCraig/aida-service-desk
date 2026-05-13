@@ -21,7 +21,7 @@ async function getNinjaToken() {
   try {
     const res = await axios.post(
       `${base}/ws/oauth/token`,
-      `grant_type=client_credentials&client_id=${encodeURIComponent(process.env.NINJA_CLIENT_ID)}&client_secret=${encodeURIComponent(process.env.NINJA_CLIENT_SECRET)}&scope=monitoring%20management%20control`,
+      `grant_type=client_credentials&client_id=${encodeURIComponent(process.env.NINJA_CLIENT_ID)}&client_secret=${encodeURIComponent(process.env.NINJA_CLIENT_SECRET)}&scope=monitoring`,
       {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
