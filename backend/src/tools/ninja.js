@@ -18,15 +18,16 @@ async function getNinjaToken() {
     return tokenCache.token;
   }
   const base = getNinjaBaseUrl();
-  const params = new URLSearchParams({
-    grant_type: 'client_credentials',
-    client_id: process.env.NINJA_CLIENT_ID,
-    client_secret: process.env.NINJA_CLIENT_SECRET,
-    scope: 'monitoring management control',
-  });
-  const res = await axios.post(`${base}/ws/oauth/token`, params.toString(), {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  });
+  const res = await axios.post(
+    `${base}/ws/oauth/token`,
+    `grant_type=client_credentials&client_id=${encodeURIComponent(process.env.NINJA_CLIENT_ID)}&client_secret=${encodeURIComponent(process.env.NINJA_CLIENT_SECRET)}&scope=monitoring%20management%20control`,
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
+      },
+    }
+  );
   tokenCache = {
     token: res.data.access_token,
     expiresAt: Date.now() + res.data.expires_in * 1000,
