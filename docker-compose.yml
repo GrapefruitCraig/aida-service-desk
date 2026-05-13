@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: .
+      target: production
+    ports:
+      - '3001:3001'
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      HALO_BASE_URL: ${HALO_BASE_URL}
+      HALO_CLIENT_ID: ${HALO_CLIENT_ID}
+      HALO_CLIENT_SECRET: ${HALO_CLIENT_SECRET}
+      HALO_TENANT: ${HALO_TENANT:-}
+      NINJA_CLIENT_ID: ${NINJA_CLIENT_ID}
+      NINJA_CLIENT_SECRET: ${NINJA_CLIENT_SECRET}
+      NINJA_REGION: ${NINJA_REGION:-eu}
+      FRONTEND_URL: http://localhost:5173
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3001/api/ping']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Development only — hot reload frontend
+  frontend-dev:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - '5173:5173'
+    environment:
+      VITE_API_URL: http://localhost:3001
+    command: sh -c "npm install && npm run dev -- --host"
+    profiles:
+      - dev
