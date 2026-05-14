@@ -88,7 +88,7 @@ async function getDevices({ search, organizationId, limit = 20 }) {
     pageSize: limit,
     ...(organizationId && { organizationId }),
   };
-  const devices = await ninjaRequest('GET', '/devices-detailed', null, params);
+  const devices = await ninjaRequest('GET', '/devices', null, params);
   if (search) {
     const q = search.toLowerCase();
     return devices.filter(d =>
@@ -121,7 +121,7 @@ async function getActiveAlerts({ organizationId, severity } = {}) {
 }
 
 async function getOfflineDevices() {
-  const devices = await ninjaRequest('GET', '/devices-detailed', null, { pageSize: 200 });
+  const devices = await ninjaRequest('GET', '/devices', null, { pageSize: 200 });
   return devices.filter(d => d.online === false);
 }
 
