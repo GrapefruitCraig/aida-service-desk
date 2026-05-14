@@ -15,20 +15,7 @@ const PORT = process.env.PORT || 3001;
 // ── Security ──────────────────────────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false }));
 
-const allowedOrigins = [
-  process.env.FRONTEND_URL || 'http://localhost:5173',
-  'http://localhost:3000',
-  'http://localhost:4173',
-];
-
-app.use(cors({
-  origin: (origin, cb) => {
-    // Allow no-origin (same-origin / server-to-server) or whitelisted origins
-    if (!origin || allowedOrigins.some(o => origin.startsWith(o))) return cb(null, true);
-    cb(new Error('CORS: origin not allowed'));
-  },
-  credentials: true,
-}));
+app.use(cors());
 
 // ── Rate limiting ─────────────────────────────────────────────────────────
 app.use('/api/agent/chat', rateLimit({
