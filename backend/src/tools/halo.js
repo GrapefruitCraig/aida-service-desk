@@ -44,22 +44,18 @@ async function haloRequest(method, path, data = null, params = {}) {
 // ── Ticket operations ──────────────────────────────────────────────────────
 
 async function createTicket({ summary, details, priority, category, userId, userName, userEmail }) {
-  // Halo priority IDs: 1=Critical, 2=High, 3=Medium, 4=Low
   const priorityMap = { critical: 1, high: 2, medium: 3, low: 4, p1: 1, p2: 2, p3: 3, p4: 4 };
   const priorityId = priorityMap[(priority || 'medium').toLowerCase()] || 3;
 
-  const payload = {
+  const result = await haloRequest('POST', '/Tickets', [{
     summary,
     details,
     priority_id: priorityId,
-    tickettype_id: 1, // Incident (adjust for your Halo config)
-    ...(userId && { user_id: userId }),
+    tickettype_id: 1,
     ...(userName && { reportedby: userName }),
     ...(userEmail && { reportedby_email: userEmail }),
     ...(category && { category_1: category }),
-  };
-
-  const result = await haloRequest('POST', '/Tickets', [payload]);
+  }]);
   return result[0] || result;
 }
 
@@ -87,19 +83,19 @@ async function updateTicket(ticketId, { status, note, assigneeId, priority }) {
     promises.push(haloRequest('POST', '/Actions', [{
       ticket_id: parseInt(ticketId),
       note,
-      actiontype_id: 1,
       who: 'AIDA Service Desk Agent',
+      actiontype_id: 1,
+      hiddenfromuser: false,
+      sendemail: false,
     }]));
   }
 
-  if (status || priority || assigneeId) {
-    const payload = {
+  if (status || priority) {
+    promises.push(haloRequest('POST', '/Tickets', [{
       id: parseInt(ticketId),
       ...(status && { status_id: statusMap[status.toLowerCase()] }),
-      ...(assigneeId && { agent_id: assigneeId }),
       ...(priority && { priority_id: parseInt(priority) }),
-    };
-    promises.push(haloRequest('PUT', '/Tickets', [payload]));
+    }]));
   }
 
   const results = await Promise.all(promises);
@@ -107,23 +103,16 @@ async function updateTicket(ticketId, { status, note, assigneeId, priority }) {
 }
 
 async function escalateTicket(ticketId, { escalationNote, targetTeamId, targetAgentId }) {
-  const notePromise = haloRequest('POST', '/Actions', [{
+  return haloRequest('POST', '/Actions', [{
     ticket_id: parseInt(ticketId),
-    note: `🔺 ESCALATION — AIDA Service Desk Agent\n\n${escalationNote}`,
+    note: escalationNote,
+    who: 'AIDA',
     actiontype_id: 1,
-    who: 'AIDA Service Desk Agent',
+    hiddenfromuser: false,
+    sendemail: false,
+    new_status: 2,
+    ...(targetTeamId && { new_team: parseInt(targetTeamId) }),
   }]);
-
-  const ticketPayload = {
-    id: parseInt(ticketId),
-    status_id: 2, // In Progress
-    ...(targetTeamId && { team_id: parseInt(targetTeamId) }),
-    ...(targetAgentId && { agent_id: parseInt(targetAgentId) }),
-  };
-  const ticketPromise = haloRequest('PUT', '/Tickets', [ticketPayload]);
-
-  await Promise.all([notePromise, ticketPromise]);
-  return ticketPromise;
 }
 
 async function getAgents() {
