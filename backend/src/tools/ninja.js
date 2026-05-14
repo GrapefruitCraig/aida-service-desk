@@ -60,17 +60,25 @@ async function getNinjaToken() {
 async function ninjaRequest(method, path, data = null, params = {}) {
   const token = await getNinjaToken();
   const base = getNinjaBaseUrl();
-  const res = await axios({
-    method,
-    url: `${base}/api/v2${path}`,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    params,
-    data,
-  });
-  return res.data;
+  const url = `${base}/api/v2${path}`;
+  console.log(`[ninjaRequest] ${method.toUpperCase()} ${url}`, Object.keys(params).length ? params : '');
+  try {
+    const res = await axios({
+      method,
+      url,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      params,
+      data,
+    });
+    console.log(`[ninjaRequest] ${method.toUpperCase()} ${url} → ${res.status}`);
+    return res.data;
+  } catch (e) {
+    console.error(`[ninjaRequest] ${method.toUpperCase()} ${url} → ${e.response?.status}`, JSON.stringify(e.response?.data));
+    throw e;
+  }
 }
 
 // ── Device operations ──────────────────────────────────────────────────────
@@ -149,6 +157,7 @@ async function acknowledgeAlert(alertId) {
 }
 
 module.exports = {
+  getNinjaToken,
   getDevices,
   getDevice,
   getDeviceHealth,
