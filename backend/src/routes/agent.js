@@ -1,4 +1,5 @@
 const express = require('express');
+const axios = require('axios');
 const Anthropic = require('@anthropic-ai/sdk');
 const TOOLS = require('../tools/definitions');
 const { executeTool } = require('../tools/executor');
@@ -168,11 +169,18 @@ router.get('/health', async (req, res) => {
   } catch (e) { status.halo = e.response?.status === 401 ? 'auth_error' : 'error'; }
 
   try {
-    const ninja = require('../tools/ninja');
-    await ninja.getDevices({ limit: 1 });
+    const { getNinjaToken } = require('../tools/ninja');
+    const token = await getNinjaToken();
+    const healthUrl = 'https://eu-api.ninjarmm.com/api/v2/devices';
+    console.log(`[health/ninja] GET ${healthUrl}`);
+    const ninjaRes = await axios.get(healthUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { pageSize: 1 },
+    });
+    console.log(`[health/ninja] GET ${healthUrl} → ${ninjaRes.status}`);
     status.ninja = 'ok';
   } catch (e) {
-    console.error('Ninja health error:', e.response?.status, e.response?.data, e.message);
+    console.error(`[health/ninja] status=${e.response?.status}`, JSON.stringify(e.response?.data), e.message);
     status.ninja = e.response?.status === 401 ? 'auth_error' : 'error';
     status.ninja_detail = e.response?.data || e.message;
   }
