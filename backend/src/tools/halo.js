@@ -81,32 +81,49 @@ async function searchTickets({ query, status, userId, limit = 20 }) {
 
 async function updateTicket(ticketId, { status, note, assigneeId, priority }) {
   const statusMap = { open: 1, 'in-progress': 2, pending: 3, resolved: 4, closed: 5 };
-  const payload = {
-    id: parseInt(ticketId),
-    ...(status && { status_id: statusMap[status.toLowerCase()] }),
-    ...(assigneeId && { agent_id: assigneeId }),
-    ...(priority && { priority_id: parseInt(priority) }),
-  };
+  const promises = [];
+
   if (note) {
-    payload.actions = [{ note, who: 'AIDA Service Desk Agent', isoutgoing: false }];
+    promises.push(haloRequest('POST', '/Actions', {
+      ticket_id: parseInt(ticketId),
+      note,
+      actiontype_id: 1,
+      who: 'AIDA Service Desk Agent',
+    }));
   }
-  return haloRequest('PUT', '/Tickets', [payload]);
+
+  if (status || priority || assigneeId) {
+    const payload = {
+      id: parseInt(ticketId),
+      ...(status && { status_id: statusMap[status.toLowerCase()] }),
+      ...(assigneeId && { agent_id: assigneeId }),
+      ...(priority && { priority_id: parseInt(priority) }),
+    };
+    promises.push(haloRequest('PUT', '/Tickets', [payload]));
+  }
+
+  const results = await Promise.all(promises);
+  return results[results.length - 1];
 }
 
 async function escalateTicket(ticketId, { escalationNote, targetTeamId, targetAgentId }) {
-  const payload = {
+  const notePromise = haloRequest('POST', '/Actions', {
+    ticket_id: parseInt(ticketId),
+    note: `🔺 ESCALATION — AIDA Service Desk Agent\n\n${escalationNote}`,
+    actiontype_id: 1,
+    who: 'AIDA Service Desk Agent',
+  });
+
+  const ticketPayload = {
     id: parseInt(ticketId),
     status_id: 2, // In Progress
     ...(targetTeamId && { team_id: parseInt(targetTeamId) }),
     ...(targetAgentId && { agent_id: parseInt(targetAgentId) }),
-    actions: [{
-      note: `🔺 ESCALATION — AIDA Service Desk Agent\n\n${escalationNote}`,
-      who: 'AIDA',
-      isoutgoing: false,
-      actiontype_id: 17, // Escalation action type
-    }],
   };
-  return haloRequest('PUT', '/Tickets', [payload]);
+  const ticketPromise = haloRequest('PUT', '/Tickets', [ticketPayload]);
+
+  await Promise.all([notePromise, ticketPromise]);
+  return ticketPromise;
 }
 
 async function getAgents() {
