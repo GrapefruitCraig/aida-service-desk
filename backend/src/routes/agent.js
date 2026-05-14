@@ -62,7 +62,7 @@ router.post('/chat', async (req, res) => {
 
       // Call Claude with tools
       const response = await anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 4096,
         system: SYSTEM_PROMPT,
         tools: TOOLS,
