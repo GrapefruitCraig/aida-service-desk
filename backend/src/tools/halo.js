@@ -84,12 +84,12 @@ async function updateTicket(ticketId, { status, note, assigneeId, priority }) {
   const promises = [];
 
   if (note) {
-    promises.push(haloRequest('POST', '/Actions', {
+    promises.push(haloRequest('POST', '/Actions', [{
       ticket_id: parseInt(ticketId),
       note,
       actiontype_id: 1,
       who: 'AIDA Service Desk Agent',
-    }));
+    }]));
   }
 
   if (status || priority || assigneeId) {
@@ -107,12 +107,12 @@ async function updateTicket(ticketId, { status, note, assigneeId, priority }) {
 }
 
 async function escalateTicket(ticketId, { escalationNote, targetTeamId, targetAgentId }) {
-  const notePromise = haloRequest('POST', '/Actions', {
+  const notePromise = haloRequest('POST', '/Actions', [{
     ticket_id: parseInt(ticketId),
     note: `🔺 ESCALATION — AIDA Service Desk Agent\n\n${escalationNote}`,
     actiontype_id: 1,
     who: 'AIDA Service Desk Agent',
-  });
+  }]);
 
   const ticketPayload = {
     id: parseInt(ticketId),
