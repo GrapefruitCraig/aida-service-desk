@@ -1,11 +1,23 @@
 const express = require('express');
 const axios = require('axios');
-const Anthropic = require('@anthropic-ai/sdk');
+const OpenAI = require('openai');
 const TOOLS = require('../tools/definitions');
 const { executeTool } = require('../tools/executor');
 
 const router = express.Router();
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+// OpenRouter uses the OpenAI-compatible API
+const openai = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: 'https://openrouter.ai/api/v1',
+  defaultHeaders: {
+    'HTTP-Referer': process.env.FRONTEND_URL || 'http://localhost:5173',
+    'X-Title': 'AIDA Service Desk',
+  },
+});
+
+// Default model — can be overridden per-request or via env var
+const DEFAULT_MODEL = process.env.OPENROUTER_MODEL || 'anthropic/claude-sonnet-4-5';
 
 const SYSTEM_PROMPT = `You are AIDA (AI Desk Agent), an expert AI-powered 1st line IT service desk agent for a managed service provider.
 
@@ -31,12 +43,30 @@ You have real-time access to:
 Today's date: ${new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
 
 /**
+ * Convert Anthropic-style tool definitions to OpenAI function-calling format.
+ * Anthropic:  { name, description, input_schema: { type, properties, required } }
+ * OpenAI:     { type: 'function', function: { name, description, parameters: { type, properties, required } } }
+ */
+function toOpenAITools(anthropicTools) {
+  return anthropicTools.map((t) => ({
+    type: 'function',
+    function: {
+      name: t.name,
+      description: t.description,
+      parameters: t.input_schema,
+    },
+  }));
+}
+
+const OPENAI_TOOLS = toOpenAITools(TOOLS);
+
+/**
  * POST /api/agent/chat
  * Body: { messages: [...], stream: boolean }
- * Runs the full agentic loop (Claude → tools → Claude) and streams events via SSE.
+ * Runs the full agentic loop (OpenRouter → tools → OpenRouter) and streams events via SSE.
  */
 router.post('/chat', async (req, res) => {
-  const { messages = [], stream: useStream = true } = req.body;
+  const { messages = [] } = req.body;
 
   if (!messages.length) {
     return res.status(400).json({ error: 'messages array is required' });
@@ -53,82 +83,87 @@ router.post('/chat', async (req, res) => {
   }
 
   try {
-    let conversationMessages = [...messages];
+    // Convert incoming messages from Anthropic format to OpenAI format if needed.
+    // The frontend may already send OpenAI-style messages ({ role, content }).
+    // Tool result messages from the agentic loop are built below in OpenAI format.
+    let conversationMessages = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      ...messages,
+    ];
+
     let iterationCount = 0;
-    const MAX_ITERATIONS = 10; // Safety limit for agentic loop
+    const MAX_ITERATIONS = 10;
 
     while (iterationCount < MAX_ITERATIONS) {
       iterationCount++;
 
-      // Call Claude with tools
-      const response = await anthropic.messages.create({
-        model: 'claude-sonnet-4-5',
+      const response = await openai.chat.completions.create({
+        model: DEFAULT_MODEL,
         max_tokens: 4096,
-        system: SYSTEM_PROMPT,
-        tools: TOOLS,
+        tools: OPENAI_TOOLS,
+        tool_choice: 'auto',
         messages: conversationMessages,
       });
 
+      const choice = response.choices[0];
+      const message = choice.message;
+
       // Stream any text content to client
-      for (const block of response.content) {
-        if (block.type === 'text' && block.text) {
-          send('text', { text: block.text });
-        }
+      if (message.content) {
+        send('text', { text: message.content });
       }
 
-      // If Claude is done (no more tool calls), exit loop
-      if (response.stop_reason === 'end_turn') {
+      // If the model is done (no tool calls), exit loop
+      if (choice.finish_reason === 'stop' || !message.tool_calls || message.tool_calls.length === 0) {
         break;
       }
 
       // Process tool calls
-      if (response.stop_reason === 'tool_use') {
-        const toolUseBlocks = response.content.filter(b => b.type === 'tool_use');
+      if (choice.finish_reason === 'tool_calls' || message.tool_calls?.length > 0) {
+        // Add the assistant message (with tool_calls) to conversation
+        conversationMessages.push(message);
 
-        // Add Claude's response to conversation
-        conversationMessages.push({
-          role: 'assistant',
-          content: response.content,
-        });
+        // Execute all tool calls (parallel)
+        const toolResultMessages = await Promise.all(
+          message.tool_calls.map(async (toolCall) => {
+            const toolName = toolCall.function.name;
+            let toolInput;
+            try {
+              toolInput = JSON.parse(toolCall.function.arguments);
+            } catch {
+              toolInput = {};
+            }
 
-        // Execute all tool calls (parallel where possible)
-        const toolResults = await Promise.all(
-          toolUseBlocks.map(async (toolUse) => {
-            send('tool_start', { id: toolUse.id, name: toolUse.name, input: toolUse.input });
+            send('tool_start', { id: toolCall.id, name: toolName, input: toolInput });
 
-            const { result, error } = await executeTool(toolUse.name, toolUse.input);
+            const { result, error } = await executeTool(toolName, toolInput);
 
-            const toolResult = {
-              type: 'tool_result',
-              tool_use_id: toolUse.id,
+            send('tool_result', {
+              id: toolCall.id,
+              name: toolName,
+              success: !error,
+              summary: error || summariseToolResult(toolName, result),
+            });
+
+            // OpenAI tool result message format
+            return {
+              role: 'tool',
+              tool_call_id: toolCall.id,
               content: error
                 ? `Error: ${error}`
                 : JSON.stringify(result, null, 2),
-              is_error: !!error,
             };
-
-            send('tool_result', {
-              id: toolUse.id,
-              name: toolUse.name,
-              success: !error,
-              summary: error || summariseToolResult(toolUse.name, result),
-            });
-
-            return toolResult;
           })
         );
 
         // Add tool results to conversation
-        conversationMessages.push({
-          role: 'user',
-          content: toolResults,
-        });
+        conversationMessages.push(...toolResultMessages);
 
-        // Continue loop — Claude will process tool results and respond
+        // Continue loop — model will process tool results and respond
         continue;
       }
 
-      // Unexpected stop reason
+      // Unexpected finish reason
       break;
     }
 
@@ -152,15 +187,16 @@ router.post('/chat', async (req, res) => {
  */
 router.get('/health', async (req, res) => {
   const status = {
-    anthropic: 'unknown',
+    openrouter: 'unknown',
     halo: 'unknown',
     ninja: 'unknown',
   };
 
   try {
-    await anthropic.models.list();
-    status.anthropic = 'ok';
-  } catch { status.anthropic = 'error'; }
+    // Lightweight check — list available models via OpenRouter
+    await openai.models.list();
+    status.openrouter = 'ok';
+  } catch { status.openrouter = 'error'; }
 
   try {
     const halo = require('../tools/halo');
