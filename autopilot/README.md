@@ -8,6 +8,8 @@ can't verify a resolution.
 
 **Read [PLAN.md](PLAN.md) first** — it covers the process design, the bottlenecks this
 replaces, the ticket lifecycle, and the rollout plan (including shadow mode).
+**[DEPLOYMENT.md](DEPLOYMENT.md)** covers hosting: Railway for the pilot, in-house Docker
+for full production, and the cutover runbook between them.
 
 This is a standalone project: copy this directory into its own repository as-is.
 
