@@ -13,7 +13,7 @@ function openaiClient() {
     _openai = new OpenAI({
       apiKey: cfg.openRouterKey,
       baseURL: 'https://openrouter.ai/api/v1',
-      defaultHeaders: { 'X-Title': 'AIDA Autopilot' },
+      defaultHeaders: { 'X-Title': 'T3C 1st Auto' },
     });
   }
   return _openai;
@@ -46,7 +46,7 @@ async function handleTicketEvent(ticketId, event) {
     if (cfg.halo.agentId && ticket.agent_id && ticket.agent_id !== cfg.halo.agentId) {
       store.cancelFollowups(ticketId);
       store.updateTicket(ticketId, { state: 'closed' });
-      store.finishRun(runId, 'released', `Ticket reassigned to agent ${ticket.agent_id}; AIDA stood down`);
+      store.finishRun(runId, 'released', `Ticket reassigned to agent ${ticket.agent_id}; ${cfg.agentName} stood down`);
       console.log(`[runner] ticket ${ticketId} owned by agent ${ticket.agent_id}; standing down`);
       return;
     }
@@ -118,7 +118,7 @@ async function handleTicketEvent(ticketId, event) {
     }
 
     if (!outcome) {
-      await halo.addPrivateNote(ticketId, 'AIDA: run ended without an outcome (iteration limit). Flagged for human review.');
+      await halo.addPrivateNote(ticketId, `${cfg.agentName}: run ended without an outcome (iteration limit). Flagged for human review.`);
       store.updateTicket(ticketId, { state: 'needs_attention' });
       store.finishRun(runId, 'needs_attention', 'Iteration limit reached without finish_run');
       return;
@@ -132,7 +132,7 @@ async function handleTicketEvent(ticketId, event) {
     store.updateTicket(ticketId, { state: 'needs_attention' });
     store.finishRun(runId, 'error', err.message);
     await halo
-      .addPrivateNote(ticketId, `AIDA: run failed with an internal error (${err.message}). Flagged for human review.`)
+      .addPrivateNote(ticketId, `${cfg.agentName}: run failed with an internal error (${err.message}). Flagged for human review.`)
       .catch(() => {});
   }
 }
@@ -177,7 +177,7 @@ async function applyOutcome(ticketId, outcome, event, nudgeCount) {
     case 'out_of_scope':
       await halo.escalate(
         ticketId,
-        outcome.handover_note || `AIDA ${state} without a handover note. Summary: ${outcome.summary}`
+        outcome.handover_note || `${cfg.agentName} ${state} without a handover note. Summary: ${outcome.summary}`
       );
       store.updateTicket(ticketId, { state: 'escalated', scratchpad });
       break;
@@ -186,14 +186,14 @@ async function applyOutcome(ticketId, outcome, event, nudgeCount) {
     case 'closed_no_response':
       await halo.close(
         ticketId,
-        outcome.resolution_note || `Closed by AIDA (${state}). Summary: ${outcome.summary}`
+        outcome.resolution_note || `Closed by ${cfg.agentName} (${state}). Summary: ${outcome.summary}`
       );
       store.updateTicket(ticketId, { state: 'closed', scratchpad });
       break;
 
     default:
       store.updateTicket(ticketId, { state: 'needs_attention', scratchpad });
-      await halo.addPrivateNote(ticketId, `AIDA: unknown outcome state "${state}". Flagged for human review.`);
+      await halo.addPrivateNote(ticketId, `${cfg.agentName}: unknown outcome state "${state}". Flagged for human review.`);
   }
 }
 

@@ -4,7 +4,7 @@ const Database = require('better-sqlite3');
 const cfg = require('./config');
 
 fs.mkdirSync(cfg.dataDir, { recursive: true });
-const db = new Database(path.join(cfg.dataDir, 'autopilot.db'));
+const db = new Database(path.join(cfg.dataDir, 't3c_auto.db'));
 db.pragma('journal_mode = WAL');
 
 db.exec(`

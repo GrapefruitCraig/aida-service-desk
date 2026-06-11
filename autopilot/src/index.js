@@ -15,7 +15,7 @@ queue.init(handleTicketEvent);
 queue.startScheduler();
 
 function authorised(req) {
-  const token = req.get('x-aida-token') || req.query.token;
+  const token = req.get('x-t3c-token') || req.query.token;
   return cfg.webhookSecret && token === cfg.webhookSecret;
 }
 
@@ -33,9 +33,9 @@ function extractTicketId(body = {}) {
 
 /**
  * POST /webhooks/halo
- * Configure two Halo webhooks at this endpoint (header X-Aida-Token: <secret>):
- *  - new ticket assigned to AIDA  → payload { "ticket_id": ..., "event": "new_ticket" }
- *  - customer reply on AIDA ticket → payload { "ticket_id": ..., "event": "user_reply" }
+ * Configure two Halo webhooks at this endpoint (header X-T3C-Token: <secret>):
+ *  - new ticket assigned to the agent → payload { "ticket_id": ..., "event": "new_ticket" }
+ *  - customer reply on an agent-owned ticket → payload { "ticket_id": ..., "event": "user_reply" }
  */
 app.post('/webhooks/halo', (req, res) => {
   if (!authorised(req)) return res.status(401).json({ error: 'unauthorised' });
@@ -85,7 +85,7 @@ app.get('/health', async (req, res) => {
 });
 
 app.listen(cfg.port, () => {
-  console.log(`AIDA Autopilot listening on :${cfg.port}`);
+  console.log(`T3C 1st Auto listening on :${cfg.port}`);
   console.log(`  Shadow mode: ${cfg.shadowMode ? 'ON (no user-facing actions)' : 'OFF (live)'}`);
   console.log(`  Model:       ${cfg.model}`);
   console.log(`  Halo:        ${cfg.halo.baseUrl || 'NOT CONFIGURED'}`);

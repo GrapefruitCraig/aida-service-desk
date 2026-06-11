@@ -1,5 +1,5 @@
 {
-  "name": "aida-autopilot",
+  "name": "t3c-1st-auto",
   "version": "0.1.0",
   "description": "Autonomous Halo PSA ticket-working agent — triggered by the 1st line workflow, owns tickets through to completion",
   "main": "src/index.js",

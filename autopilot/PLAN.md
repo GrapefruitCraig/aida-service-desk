@@ -1,4 +1,4 @@
-# AIDA Autopilot — Process Plan
+# T3C 1st Auto — Process Plan
 
 An autonomous service desk agent that is **handed tickets by the existing 1st line workflow**
 and then **owns them through to completion** — replying to users, verifying fixes, chasing
@@ -55,7 +55,7 @@ architectural, not prompt-level.
               │                                      │
    user replies to ticket ──► webhook: user reply ──►│
               │                                      ▼
-              │                          AIDA Autopilot service
+              │                          T3C 1st Auto service
               │                  ┌──────────────────────────────────┐
               │                  │ per-ticket queue + follow-up     │
               │                  │ scheduler (SQLite)               │
@@ -140,7 +140,7 @@ Nothing else about the existing workflow changes. Removing AIDA = disabling the 
 - **Single terminal tool.** Each run must end with `finish_run(state, …)`; the runner — not
   the model — executes the side-effects of that state (schedule nudge, escalate with
   handover, close with note). Lifecycle consistency is code-enforced, not prompt-hoped.
-- **Shadow mode** (`AIDA_SHADOW_MODE=true`): the agent runs the full process but all
+- **Shadow mode** (`T3C_SHADOW_MODE=true`): the agent runs the full process but all
   user-facing emails, status changes, escalations and device actions are written as private
   notes prefixed `[SHADOW]` instead of executed. This is the safe rollout gate.
 - **Headless.** No end-user UI. Ops surface is the Halo ticket plus `/health`.
@@ -169,7 +169,7 @@ Nothing else about the existing workflow changes. Removing AIDA = disabling the 
 - [ ] `/health` shows `halo`, `ninja`, `openrouter` all `ok`
 
 **Phase 3 — shadow mode (1–2 weeks):**
-- [ ] `AIDA_SHADOW_MODE=true`; real tickets flow in, agent decisions land as private notes
+- [ ] `T3C_SHADOW_MODE=true`; real tickets flow in, agent decisions land as private notes
 - [ ] Daily review: would-have-sent replies, would-have-escalated handovers, fact-check
       quality. Tune KB and prompt until the shadow output is consistently right
 

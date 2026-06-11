@@ -75,7 +75,7 @@ async function addPrivateNote(ticketId, note) {
     {
       ticket_id: parseInt(ticketId, 10),
       note,
-      who: 'AIDA',
+      who: cfg.agentName,
       actiontype_id: 1,
       hiddenfromuser: true,
       sendemail: false,
@@ -91,7 +91,7 @@ async function replyToUser(ticketId, message) {
     {
       ticket_id: parseInt(ticketId, 10),
       note: message,
-      who: 'AIDA',
+      who: cfg.agentName,
       actiontype_id: 1,
       hiddenfromuser: false,
       sendemail: true,
@@ -117,7 +117,7 @@ async function escalate(ticketId, handoverNote) {
     {
       ticket_id: parseInt(ticketId, 10),
       note: handoverNote,
-      who: 'AIDA',
+      who: cfg.agentName,
       actiontype_id: 1,
       hiddenfromuser: true,
       sendemail: false,
@@ -135,7 +135,7 @@ async function close(ticketId, resolutionNote) {
     {
       ticket_id: parseInt(ticketId, 10),
       note: resolutionNote,
-      who: 'AIDA',
+      who: cfg.agentName,
       actiontype_id: 1,
       hiddenfromuser: false,
       sendemail: true,

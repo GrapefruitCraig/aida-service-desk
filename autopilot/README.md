@@ -1,4 +1,4 @@
-# AIDA Autopilot
+# T3C 1st Auto
 
 Autonomous service desk agent for Halo PSA. The existing 1st line workflow hands it tickets
 (via webhook); it then **owns each ticket to completion** — fact-checking the report against
@@ -22,7 +22,7 @@ This is a standalone project: copy this directory into its own repository as-is.
   again — no ticket ever just sits
 - All user communication and the audit trail live in the Halo ticket itself; a local SQLite
   DB holds only timers, run history, and the agent's scratchpad
-- `AIDA_SHADOW_MODE=true` (the default) runs the entire process but writes would-be emails,
+- `T3C_SHADOW_MODE=true` (the default) runs the entire process but writes would-be emails,
   status changes, escalations, and device actions as `[SHADOW]` private notes instead of
   executing them — the safe rollout gate
 
@@ -37,24 +37,24 @@ npm start
 Docker:
 
 ```bash
-docker build -t aida-autopilot .
-docker run -p 3002:3002 -v aida-data:/data --env-file .env aida-autopilot
+docker build -t t3c-1st-auto .
+docker run -p 3002:3002 -v t3c-data:/data --env-file .env t3c-1st-auto
 ```
 
 ## Endpoints
 
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
-| POST | `/webhooks/halo` | `X-Aida-Token` header | Halo webhook receiver |
-| POST | `/api/run/:ticketId` | `X-Aida-Token` header | Manual (re-)trigger for testing |
+| POST | `/webhooks/halo` | `X-T3C-Token` header | Halo webhook receiver |
+| POST | `/api/run/:ticketId` | `X-T3C-Token` header | Manual (re-)trigger for testing |
 | GET | `/health` | none | Integration status + shadow-mode flag |
 
 ## Halo configuration
 
 1. API application (client credentials): tickets/actions read+write, users read, KB read
-2. An "AIDA" agent account — put its ID in `AIDA_HALO_AGENT_ID` (the agent stands down
+2. An "AIDA" agent account — put its ID in `T3C_HALO_AGENT_ID` (the agent stands down
    whenever a ticket is reassigned to a human)
-3. Two webhooks to `POST /webhooks/halo` with header `X-Aida-Token: <AIDA_WEBHOOK_SECRET>`:
+3. Two webhooks to `POST /webhooks/halo` with header `X-T3C-Token: <T3C_WEBHOOK_SECRET>`:
    - ticket assigned to AIDA → payload `{ "ticket_id": <id>, "event": "new_ticket" }`
    - customer reply on an AIDA ticket → payload `{ "ticket_id": <id>, "event": "user_reply" }`
 4. A workflow rule in the existing 1st line workflow that assigns in-scope tickets
@@ -65,7 +65,7 @@ docker run -p 3002:3002 -v aida-data:/data --env-file .env aida-autopilot
 
 ```bash
 curl -X POST http://localhost:3002/api/run/12345 \
-  -H "X-Aida-Token: $AIDA_WEBHOOK_SECRET" \
+  -H "X-T3C-Token: $T3C_WEBHOOK_SECRET" \
   -H "Content-Type: application/json" \
   -d '{"reason":"manual test"}'
 ```

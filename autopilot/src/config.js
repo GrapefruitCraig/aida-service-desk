@@ -5,9 +5,11 @@ const bool = (v, d) => (v !== undefined && v !== '' ? v === 'true' || v === '1' 
 
 module.exports = {
   port: num(process.env.PORT, 3002),
-  webhookSecret: process.env.AIDA_WEBHOOK_SECRET || '',
+  webhookSecret: process.env.T3C_WEBHOOK_SECRET || '',
   dataDir: process.env.DATA_DIR || './data',
-  shadowMode: bool(process.env.AIDA_SHADOW_MODE, true),
+  shadowMode: bool(process.env.T3C_SHADOW_MODE, true),
+  // Display name used in ticket notes, user emails, and the system prompt
+  agentName: process.env.AGENT_NAME || 'AIDA',
 
   openRouterKey: process.env.OPENROUTER_API_KEY,
   model: process.env.OPENROUTER_MODEL || 'anthropic/claude-sonnet-4-5',
@@ -17,8 +19,8 @@ module.exports = {
     clientId: process.env.HALO_CLIENT_ID,
     clientSecret: process.env.HALO_CLIENT_SECRET,
     tenant: process.env.HALO_TENANT || '',
-    agentId: num(process.env.AIDA_HALO_AGENT_ID, 0),
-    escalationTeamId: num(process.env.AIDA_ESCALATION_TEAM_ID, 0),
+    agentId: num(process.env.T3C_HALO_AGENT_ID, 0),
+    escalationTeamId: num(process.env.T3C_ESCALATION_TEAM_ID, 0),
     status: {
       new: num(process.env.HALO_STATUS_NEW, 1),
       inProgress: num(process.env.HALO_STATUS_IN_PROGRESS, 2),

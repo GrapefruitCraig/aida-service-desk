@@ -3,7 +3,7 @@
 services:
   autopilot:
     build: .
-    container_name: aida-autopilot
+    container_name: t3c-1st-auto
     restart: unless-stopped
     ports:
       - "3002:3002"
@@ -13,7 +13,7 @@ services:
       - DATA_DIR=/data
     volumes:
       # Holds follow-up timers, nudge counts, run history — back this up
-      - aida-data:/data
+      - t3c-data:/data
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:'+(process.env.PORT||3002)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 60s
@@ -21,4 +21,4 @@ services:
       retries: 3
 
 volumes:
-  aida-data:
+  t3c-data:
