@@ -35,6 +35,14 @@ async function executeTool(toolName, toolInput) {
         result = await halo.getUsers(toolInput);
         break;
 
+      case 'halo_search_kb':
+        result = await halo.searchKBArticles(toolInput);
+        break;
+
+      case 'halo_get_kb_article':
+        result = await halo.getKBArticle(toolInput.articleId);
+        break;
+
       // ── NinjaRMM ─────────────────────────────────────────────────────────
       case 'ninja_get_devices':
         result = await ninja.getDevices(toolInput);

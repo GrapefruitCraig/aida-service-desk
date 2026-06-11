@@ -1,6 +1,10 @@
 # AIDA — IT Service Desk Agent
 
-AI-powered 1st line service desk agent backed by **Claude Sonnet 4**, **Halo PSA**, and **NinjaRMM**.
+Autonomous 1st line service desk agent backed by **OpenRouter** (default model: Claude Sonnet 4.5), **Halo PSA**, and **NinjaRMM**.
+
+The agent works on verified facts only: it grounds every answer in tool results and Halo KB articles, fact-checks user claims within the scope of the ticket, only asks users questions a non-technical person can answer, and never declares a fix or next step that hasn't been tested via tools.
+
+**Going live?** See [PRODUCTION.md](PRODUCTION.md) for the full production checklist.
 
 ## Features
 
@@ -28,7 +32,8 @@ cp backend/.env.example backend/.env
 Edit `backend/.env`:
 
 ```env
-ANTHROPIC_API_KEY=sk-ant-...
+OPENROUTER_API_KEY=sk-or-v1-...
+OPENROUTER_MODEL=anthropic/claude-sonnet-4-5   # optional override
 
 # Halo PSA
 HALO_BASE_URL=https://your-instance.halopsa.com
@@ -80,9 +85,9 @@ Open http://localhost:5173
    - `oc` — oc.ninjarmm.com
    - `ca` — ca.ninjarmm.com
 
-### Anthropic
+### OpenRouter
 
-Get your key at https://console.anthropic.com
+Get your key at https://openrouter.ai — the backend calls the model through OpenRouter's OpenAI-compatible API.
 
 ---
 
@@ -96,7 +101,7 @@ docker build -t aida-service-desk .
 
 # Run with env vars
 docker run -p 3001:3001 \
-  -e ANTHROPIC_API_KEY=sk-ant-... \
+  -e OPENROUTER_API_KEY=sk-or-v1-... \
   -e HALO_BASE_URL=https://your.halopsa.com \
   -e HALO_CLIENT_ID=... \
   -e HALO_CLIENT_SECRET=... \
@@ -136,7 +141,7 @@ npm install -g @railway/cli
 railway login
 railway init
 railway up
-railway variables set ANTHROPIC_API_KEY=sk-ant-...
+railway variables set OPENROUTER_API_KEY=sk-or-v1-...
 railway variables set HALO_BASE_URL=https://your.halopsa.com
 # ... set all other variables
 ```
@@ -145,7 +150,8 @@ railway variables set HALO_BASE_URL=https://your.halopsa.com
 
 | Variable | Value |
 |---|---|
-| `ANTHROPIC_API_KEY` | Your Anthropic API key |
+| `OPENROUTER_API_KEY` | Your OpenRouter API key |
+| `OPENROUTER_MODEL` | Optional model override (default `anthropic/claude-sonnet-4-5`) |
 | `HALO_BASE_URL` | `https://your-instance.halopsa.com` |
 | `HALO_CLIENT_ID` | Halo API client ID |
 | `HALO_CLIENT_SECRET` | Halo API client secret |
@@ -168,11 +174,13 @@ Browser
         │
         └── Express backend
               │
-              ├── Claude Sonnet 4 (tool use / agentic loop)
+              ├── OpenRouter model (tool use / agentic loop)
               │     ├── halo_create_ticket
               │     ├── halo_search_tickets
               │     ├── halo_update_ticket
               │     ├── halo_escalate_ticket
+              │     ├── halo_search_kb
+              │     ├── halo_get_kb_article
               │     ├── ninja_get_device_health
               │     ├── ninja_get_active_alerts
               │     ├── ninja_reboot_device

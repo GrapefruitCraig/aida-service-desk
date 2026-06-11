@@ -115,6 +115,21 @@ async function escalateTicket(ticketId, { escalationNote, targetTeamId, targetAg
   }]);
 }
 
+// ── Knowledge base ─────────────────────────────────────────────────────────
+
+async function searchKBArticles({ search, limit = 10 }) {
+  return haloRequest('GET', '/KBArticle', null, {
+    pagesize: limit,
+    ...(search && { search }),
+  });
+}
+
+async function getKBArticle(articleId) {
+  return haloRequest('GET', `/KBArticle/${articleId}`, null, {
+    includedetails: true,
+  });
+}
+
 async function getAgents() {
   return haloRequest('GET', '/Agent', null, { pagesize: 50 });
 }
@@ -134,4 +149,6 @@ module.exports = {
   escalateTicket,
   getAgents,
   getUsers,
+  searchKBArticles,
+  getKBArticle,
 };

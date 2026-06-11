@@ -73,6 +73,29 @@ const TOOLS = [
     },
   },
   {
+    name: 'halo_search_kb',
+    description: 'Search the Halo PSA knowledge base for articles. ALWAYS search the KB before giving troubleshooting guidance — documented client-specific procedures take precedence over generic advice.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        search: { type: 'string', description: 'Keywords describing the issue, product, or client to search for' },
+        limit: { type: 'number', description: 'Max articles to return (default 10)' },
+      },
+      required: ['search'],
+    },
+  },
+  {
+    name: 'halo_get_kb_article',
+    description: 'Retrieve the full content of a Halo PSA knowledge base article by its ID. Read the full article before following or citing it.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        articleId: { type: 'string', description: 'The Halo KB article ID' },
+      },
+      required: ['articleId'],
+    },
+  },
+  {
     name: 'halo_get_users',
     description: 'Search for users in Halo PSA by name or email.',
     input_schema: {
