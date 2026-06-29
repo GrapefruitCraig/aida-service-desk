@@ -131,7 +131,7 @@ function StatusDot({ status }) {
 export default function App() {
   const [messages, setMessages] = useState([{
     id: 'welcome', role: 'assistant',
-    content: "Hi, I'm **AIDA** — your AI-powered IT service desk agent.\n\nI have live access to **Halo PSA** and **NinjaRMM**. I can troubleshoot issues, raise and manage tickets, check device health, run remote scripts, and escalate to your team.\n\nWhat can I help you with?",
+    content: "Hi, I'm **Caida** — your AI-powered IT service desk agent.\n\nI have live access to **Halo PSA** and **NinjaRMM**. I can troubleshoot issues, raise and manage tickets, check device health, run remote scripts, and escalate to your team.\n\nWhat can I help you with?",
   }]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -289,7 +289,7 @@ export default function App() {
               }}>
                 <i className="ti ti-robot" style={{ color: '#22c55e', fontSize: 14 }} aria-hidden="true" />
               </div>
-              <span style={{ fontWeight: 600, fontSize: 13, letterSpacing: '0.05em' }}>AIDA</span>
+              <span style={{ fontWeight: 600, fontSize: 13, letterSpacing: '0.05em' }}>Caida</span>
               <span style={{
                 marginLeft: 'auto', fontSize: 10, padding: '2px 6px', borderRadius: 3,
                 background: '#14532d', color: '#22c55e', border: '1px solid #22c55e22',
@@ -363,7 +363,7 @@ export default function App() {
             <i className="ti ti-layout-sidebar" style={{ fontSize: 16 }} aria-hidden="true" />
           </button>
           <span style={{ fontSize: 13, fontWeight: 500, color: '#888', fontFamily: 'var(--mono)' }}>
-            AIDA / service-desk
+            Caida / service-desk
           </span>
           {loading && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto', color: '#555', fontSize: 11 }}>
@@ -412,7 +412,7 @@ export default function App() {
               value={input}
               onChange={e => { setInput(e.target.value); autoResize(e.target); }}
               onKeyDown={handleKey}
-              placeholder="Describe your IT issue or ask AIDA anything…"
+              placeholder="Describe your IT issue or ask Caida anything…"
               disabled={loading}
               rows={1}
               style={{
@@ -441,7 +441,7 @@ export default function App() {
             </button>
           </div>
           <p style={{ fontSize: 10, color: '#333', marginTop: 6, textAlign: 'center', fontFamily: 'var(--mono)' }}>
-            AIDA · Halo PSA + NinjaRMM · Claude Sonnet 4
+            Caida · Halo PSA + NinjaRMM · Claude Sonnet 4
           </p>
         </div>
       </div>

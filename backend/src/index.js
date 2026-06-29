@@ -49,7 +49,7 @@ app.use((err, req, res, _next) => {
 
 app.listen(PORT, () => {
   const model = process.env.OPENROUTER_MODEL || 'anthropic/claude-sonnet-4-5';
-  console.log(`\n🤖 AIDA Service Desk running on http://localhost:${PORT}`);
+  console.log(`\n🤖 Caida Service Desk running on http://localhost:${PORT}`);
   console.log(`   Halo PSA:    ${process.env.HALO_BASE_URL || '⚠ not configured'}`);
   console.log(`   NinjaRMM:    ${process.env.NINJA_BASE_URL || 'https://eu.ninjarmm.com'}`);
   console.log(`   OpenRouter:  ${process.env.OPENROUTER_API_KEY ? '✓ configured' : '⚠ not configured'}`);

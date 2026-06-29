@@ -1,4 +1,4 @@
-# AIDA — IT Service Desk Agent
+# Caida — IT Service Desk Agent
 
 AI-powered 1st line service desk agent backed by **Claude Sonnet 4**, **Halo PSA**, and **NinjaRMM**.
 
@@ -92,7 +92,7 @@ Get your key at https://console.anthropic.com
 
 ```bash
 # Build the image (bundles frontend + backend)
-docker build -t aida-service-desk .
+docker build -t caida-service-desk .
 
 # Run with env vars
 docker run -p 3001:3001 \
@@ -103,7 +103,7 @@ docker run -p 3001:3001 \
   -e NINJA_CLIENT_ID=... \
   -e NINJA_CLIENT_SECRET=... \
   -e NINJA_REGION=eu \
-  aida-service-desk
+  caida-service-desk
 ```
 
 Open http://localhost:3001

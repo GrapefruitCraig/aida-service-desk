@@ -83,7 +83,7 @@ async function updateTicket(ticketId, { status, note, assigneeId, priority }) {
     promises.push(haloRequest('POST', '/Actions', [{
       ticket_id: parseInt(ticketId),
       note,
-      who: 'AIDA Service Desk Agent',
+      who: 'Caida Service Desk Agent',
       actiontype_id: 1,
       hiddenfromuser: false,
       sendemail: false,
@@ -106,7 +106,7 @@ async function escalateTicket(ticketId, { escalationNote, targetTeamId, targetAg
   return haloRequest('POST', '/Actions', [{
     ticket_id: parseInt(ticketId),
     note: escalationNote,
-    who: 'AIDA',
+    who: 'Caida',
     actiontype_id: 1,
     hiddenfromuser: false,
     sendemail: false,

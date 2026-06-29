@@ -12,14 +12,14 @@ const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   defaultHeaders: {
     'HTTP-Referer': process.env.FRONTEND_URL || 'http://localhost:5173',
-    'X-Title': 'AIDA Service Desk',
+    'X-Title': 'Caida Service Desk',
   },
 });
 
 // Default model — can be overridden per-request or via env var
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL || 'anthropic/claude-sonnet-4-5';
 
-const SYSTEM_PROMPT = `You are AIDA (AI Desk Agent), an expert AI-powered 1st line IT service desk agent for a managed service provider.
+const SYSTEM_PROMPT = `You are Caida (AI Desk Agent), an expert AI-powered 1st line IT service desk agent for a managed service provider.
 
 You have real-time access to:
 - **Halo PSA** — create, update, search, and escalate support tickets
